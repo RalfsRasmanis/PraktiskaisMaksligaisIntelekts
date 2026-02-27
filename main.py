@@ -81,5 +81,9 @@ while not game_end(numlist):
 
 print("Game over!")
 print("Final scores:", scores)
-print("Winner:", max(scores, key=scores.get))
+
+if scores["Player1"] == scores["Player2"]:
+    print("It's a tie!")
+else:
+    print("Winner:", max(scores, key=scores.get))
 
