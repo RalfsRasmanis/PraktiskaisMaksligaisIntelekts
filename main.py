@@ -146,7 +146,58 @@ def best_move(sequence, scores, current_player):
     #Atgriež labākā gājiena indeksu un tā vērtību.
     return best_idx, best_val
 
+# Alpha-Beta algoritma sākums
 
+
+def alpha_beta(v, s, gajejs, alpha, beta, dzilums):
+    #šī funkcija ir datora spēja skatīties nākotnē v - virkne, s - punkti, dzilums - cik gājienus uz priekšu dators redz
+    if len(v) == 1 or dzilums == 0:#ja virknē palicis tikai 1 skaitlis vai arī ir sasniegts dziļuma limits, tiek noskaidrots, kurš pašlaik uzvar
+        return s["Cilvēks"] - s["Dators"]#dators cenšas panākt, lai starpība būtu viņam izdevīga
+
+    if gajejs == "Cilvēks":
+        best_val = float('-inf') #tiek izvēlēts mīnus bezgalība, lai jebkurš pirmais gājiens ko dators atradīs, uzreiz būtu labāks par to
+        for i in range(len(v) - 1):
+            #iztēlojamies gājienu
+            nv, ns = apply_move_players_immutable(v, i, "Cilvēks", s)#nv, ns ir gājiens, kurš tika izdarīts 'galvā'
+            res = alpha_beta(nv, ns, "Dators", alpha, beta, dzilums - 1)#res apskata, kas notiks, ja tiks izdarīts noteiktais gājiens
+            best_val = max(best_val, res) #patur labāko variantu
+            
+            #Alpha-Beta atzarošana
+            #ja dators saprot, ka šis ceļš ir sliktāks par to, ko tas atrada iepriekš, tas nepārbauda pārējos variantus šajā zarā
+            alpha = max(alpha, best_val)
+            if beta <= alpha:
+                break #Nogriež liekos gājienus
+        return best_val
+    else:
+        #datora mērķis ir iegūt pēc iespējas mazāku starpības rezultātu, lai tas uzvarētu
+        best_val = float('inf')
+        for i in range(len(v) - 1):
+            nv, ns = apply_move_players_immutable(v, i, "Dators", s)
+            res = alpha_beta(nv, ns, "Cilvēks", alpha, beta, dzilums - 1)
+            best_val = min(best_val, res)
+            
+            #atkal atzarošana, ja šis gājiens pretiniekam ir pārāk izdevīgs, dators to neizvēlēsies, jo tas paredz, ka cilvēks to izvēlēsies
+            beta = min(beta, best_val)
+            if beta <= alpha:
+                break
+        return best_val
+
+def get_ai_move(v, s):
+    #funkcija kura izsauc, lai dators pasaka savu gala lēmumu
+    best_idx = 0
+    best_v = float('inf') 
+    for i in range(len(v) - 1):
+        #dators izmēģina katru iespējamo gājienu
+        nv, ns = apply_move_players_immutable(v, i, "Dators", s)
+        #izsauc Alpha-Beta, lai redzētu, pie kā šis gājiens novedīs pēc 4 soļiem(dziļuma)
+        val = alpha_beta(nv, ns, "Cilvēks", float('-inf'), float('inf'), 4)
+        if val < best_v:
+            best_v = val
+            best_idx = i
+    return best_idx
+
+
+# Alpha-Beta algoritma beigas
 
     # Pati spēles gaita
 while not game_end(numlist):
@@ -168,4 +219,5 @@ while not game_end(numlist):
 print("Game over!")
 print("Final scores:", scores)
 print("Winner:", max(scores, key=scores.get))
+
 
